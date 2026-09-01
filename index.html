@@ -279,7 +279,7 @@
                         <div class="overflow-x-auto border border-slate-700 rounded-b-xl">
                             <table class="min-w-full text-sm text-left">
                                 <thead class="bg-slate-900 text-slate-400">
-                                    <tr><th class="py-2 px-3">Lokasi/SPG</th><th class="py-2 px-3">Barang</th><th class="py-2 px-3 text-center">Alokasi</th><th class="py-2 px-3 text-center">Laku</th><th class="py-2 px-3 text-center">SISA</th></tr>
+                                    <tr><th class="py-2 px-3">Lokasi/SPG</th><th class="py-2 px-3">Barang</th><th class="py-2 px-3 text-center">Alokasi</th><th class="py-2 px-3 text-center">Laku</th><th class="py-2 px-3 text-center">Sisa</th></tr>
                                 </thead>
                                 <tbody id="tabelPosisiStok" class="divide-y divide-slate-700/50"></tbody>
                             </table>
@@ -730,7 +730,7 @@
                 let warna = p.sisa_gudang <= 0 ? "text-rose-400" : "text-blue-400";
                 tableHtml += `
                     <tr class="bg-blue-950/30 border-b border-slate-700/50">
-                        <td class="py-2 px-3 font-bold text-blue-300">🏢 Gudang Pusat</td>
+                        <td class="py-2 px-3 font-bold text-blue-300">🏢 Booth Utama</td>
                         <td class="py-2 px-3 font-semibold text-white">${prod}</td>
                         <td class="py-2 px-3 text-center text-xs text-slate-400">${p.awal}</td>
                         <td class="py-2 px-3 text-center text-xs text-slate-400">${p.jual_pusat}</td>
