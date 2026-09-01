@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Penjualan Event V5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Sembunyikan icon mata bawaan browser pada input password */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans leading-normal tracking-normal min-h-screen text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto max-w-7xl flex justify-between items-center">
+            <h1 class="text-xl font-bold">EventPOS V5</h1>
+            <div id="nav-buttons" class="hidden">
+                <button onclick="showPage('landing-page')" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm font-semibold transition">🏠 Kembali ke Home</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-6 max-w-7xl mt-2">
+        
+        <!-- ================= HALAMAN UTAMA (PILIH ROLE & LIVE TRANSAKSI) ================= -->
+        <div id="landing-page" class="flex flex-col items-center justify-center space-y-8 mt-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Pilih Akses Anda</h2>
+            </div>
+            
+            <!-- Tombol Navigasi -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+                <button onclick="showPage('spg-login')" class="bg-white border-2 border-green-500 hover:bg-green-50 text-green-700 font-bold py-8 px-6 rounded-xl shadow text-lg transition flex flex-col items-center">
+                    <span class="text-4xl mb-3">📱</span> SPG (Mobile)
+                </button>
+                <button onclick="bukaLoginPusat('kasir-pusat-page')" class="bg-white border-2 border-blue-500 hover:bg-blue-50 text-blue-700 font-bold py-8 px-6 rounded-xl shadow text-lg transition flex flex-col items-center">
+                    <span class="text-4xl mb-3">🛒</span> Kasir Booth Pusat
+                </button>
+                <button onclick="bukaLoginPusat('admin-page')" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-8 px-6 rounded-xl shadow text-lg transition flex flex-col items-center">
+                    <span class="text-4xl mb-3">💻</span> Dashboard Admin
+                </button>
+            </div>
+
+            <!-- TABEL LIVE TRANSAKSI PUBLIK (Home Page) -->
+            <div class="w-full max-w-4xl mt-12">
+                <h3 class="text-xl font-bold text-slate-700 mb-4 flex items-center justify-center">
+                    <span class="animate-pulse mr-2 text-red-500">🔴</span> Live Penjualan Event Terakhir
+                </h3>
+                <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-x-auto max-h-80">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-slate-100 text-slate-600 sticky top-0">
+                            <tr>
+                                <th class="py-3 px-4">Tgl & Waktu</th>
+                                <th class="py-3 px-4">Lokasi Penjualan</th>
+                                <th class="py-3 px-4">Barang Laku</th>
+                                <th class="py-3 px-4 text-center">Qty</th>
+                                <th class="py-3 px-4">Nominal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelLogTransaksiHome" class="divide-y divide-slate-100">
+                            <!-- Data Transaksi Muncul Disini -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= HALAMAN LOGIN ================= -->
+        <div id="login-pusat" class="hidden max-w-sm mx-auto bg-white p-8 rounded-xl shadow-lg mt-10 border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-800">Otorisasi Pusat</h2>
+            <input type="password" id="pinPusat" class="w-full p-3 border border-slate-300 rounded focus:ring-2 focus:ring-slate-800 mb-4" placeholder="Masukkan PIN">
+            <button onclick="prosesLoginPusat()" class="bg-slate-800 hover:bg-slate-900 w-full text-white font-bold py-3 rounded transition">Masuk</button>
+            <button onclick="showPage('landing-page')" class="w-full text-slate-500 text-sm mt-4 hover:underline">Kembali</button>
+        </div>
+
+        <div id="spg-login" class="hidden max-w-sm mx-auto bg-white p-8 rounded-xl shadow-lg mt-10 border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 text-center text-green-700">Akses SPG</h2>
+            <select id="pilihNamaSpgLogin" class="w-full p-3 border border-slate-300 rounded focus:ring-2 focus:ring-green-500 mb-4">
+                <option value="">-- Pilih Nama Anda --</option>
+            </select>
+            <button onclick="loginSpg()" class="bg-green-600 hover:bg-green-700 w-full text-white font-bold py-3 rounded transition">Mulai Berjualan</button>
+            <button onclick="showPage('landing-page')" class="w-full text-slate-500 text-sm mt-4 hover:underline">Kembali</button>
+        </div>
+
+        <!-- ================= KASIR BOOTH PUSAT ================= -->
+        <div id="kasir-pusat-page" class="hidden max-w-lg mx-auto mt-6">
+            <div class="bg-blue-700 p-4 rounded-t-xl text-white shadow-md">
+                <h2 class="text-xl font-bold flex justify-between">🛒 Kasir Pusat <span class="text-sm bg-blue-800 py-1 px-2 rounded">Gudang Utama</span></h2>
+            </div>
+            <div class="bg-white p-6 rounded-b-xl shadow-lg border border-slate-200">
+                <div class="space-y-5">
+                    <select id="pusatPilihProduk" class="w-full p-4 border border-slate-300 rounded-lg bg-slate-50 text-lg focus:ring-2 focus:ring-blue-500" onchange="hitungTotal('pusat')">
+                        <option value="">-- Pilih Barang --</option>
+                    </select>
+                    <div class="flex space-x-3">
+                        <div class="w-1/3">
+                            <label class="text-xs font-bold text-slate-500">Qty</label>
+                            <input type="number" id="pusatQty" class="w-full p-4 border border-slate-300 rounded-lg bg-slate-50 text-lg text-center focus:ring-2 focus:ring-blue-500" placeholder="1" min="1" value="1" oninput="hitungTotal('pusat')">
+                        </div>
+                        <div class="w-2/3">
+                            <label class="text-xs font-bold text-slate-500">Total Harga</label>
+                            <input type="text" id="pusatTotalHarga" class="w-full p-4 border border-slate-200 rounded-lg bg-slate-100 text-slate-700 font-bold text-lg" readonly placeholder="Rp 0">
+                        </div>
+                    </div>
+                    <button id="btnPusatJual" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 w-full rounded-lg text-lg shadow-md transition transform active:scale-95">Catat Penjualan Gudang</button>
+                </div>
+            </div>
+            <div class="mt-4 bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold border-b pb-2 mb-2 text-slate-700 text-sm uppercase">Sisa Stok di Gudang Pusat</h3>
+                <ul id="listSisaStokPusat" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+
+        <!-- ================= KASIR SPG MOBILE ================= -->
+        <div id="spg-page" class="hidden max-w-md mx-auto mt-6 space-y-4">
+            <div class="bg-green-600 p-4 rounded-t-xl text-white shadow-md">
+                <h2 class="text-xl font-bold flex items-center justify-between">
+                    <span>📱 SPG: <span id="namaSpgAktif" class="text-green-100 underline decoration-green-400"></span></span>
+                </h2>
+            </div>
+            <div class="bg-white p-6 rounded-b-xl shadow-lg border border-slate-200">
+                <div class="space-y-5">
+                    <select id="spgPilihProduk" class="w-full p-4 border border-slate-300 rounded-lg bg-slate-50 text-lg focus:ring-2 focus:ring-green-500" onchange="hitungTotal('spg')">
+                        <option value="">-- Pilih Barang --</option>
+                    </select>
+                    <div class="flex space-x-3">
+                        <div class="w-1/3">
+                            <label class="text-xs font-bold text-slate-500">Qty</label>
+                            <input type="number" id="spgQty" class="w-full p-4 border border-slate-300 rounded-lg bg-slate-50 text-lg text-center focus:ring-2 focus:ring-green-500" placeholder="1" min="1" value="1" oninput="hitungTotal('spg')">
+                        </div>
+                        <div class="w-2/3">
+                            <label class="text-xs font-bold text-slate-500">Total Harga</label>
+                            <input type="text" id="spgTotalHarga" class="w-full p-4 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 font-bold text-lg" readonly placeholder="Rp 0">
+                        </div>
+                    </div>
+                    <button id="btnSpgJual" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 w-full rounded-lg text-lg shadow-md transition transform active:scale-95">Catat Penjualan Saya</button>
+                </div>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-xl shadow-md text-white">
+                <h3 class="font-bold mb-3 text-slate-200 border-b border-slate-600 pb-2 uppercase text-sm">Barang Bawaan Saya</h3>
+                <ul id="listSisaStokSpg" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+
+        <!-- ================= HALAMAN ADMIN DASHBOARD ================= -->
+        <div id="admin-page" class="hidden space-y-6">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Master Produk -->
+                <div class="bg-white p-5 rounded-xl shadow border border-slate-200 lg:col-span-2">
+                    <h3 class="font-bold text-lg mb-3">1. Master Barang & Stok Awal Event</h3>
+                    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4 bg-slate-50 p-3 rounded border">
+                        <input type="text" id="adminNamaProduk" placeholder="Nama Barang" class="w-full md:w-2/5 p-2 border rounded text-sm">
+                        <input type="number" id="adminHargaProduk" placeholder="Harga Jual" class="w-full md:w-1/5 p-2 border rounded text-sm">
+                        <input type="number" id="adminStokAwal" placeholder="Stok Total (Event)" class="w-full md:w-1/5 p-2 border rounded text-sm">
+                        <button id="btnTambahProduk" class="w-full md:w-1/5 bg-slate-800 hover:bg-slate-900 text-white rounded text-sm font-bold py-2">Simpan Barang</button>
+                    </div>
+                    <div class="overflow-x-auto max-h-48 border rounded">
+                        <table class="min-w-full text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-700 sticky top-0">
+                                <tr><th class="py-2 px-3">Nama Barang</th><th class="py-2 px-3">Harga</th><th class="py-2 px-3 text-center">Stok Awal</th></tr>
+                            </thead>
+                            <tbody id="tabelMasterProduk" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Master SPG -->
+                <div class="bg-white p-5 rounded-xl shadow border border-slate-200">
+                    <h3 class="font-bold text-lg mb-3">2. Pendaftaran Tim SPG</h3>
+                    <div class="flex space-x-2 mb-4 bg-slate-50 p-3 rounded border">
+                        <input type="text" id="adminNamaSpgBaru" placeholder="Nama SPG" class="w-3/4 p-2 border rounded text-sm">
+                        <button id="btnTambahSpg" class="w-1/4 bg-slate-800 hover:bg-slate-900 text-white rounded text-sm font-bold">Tambah</button>
+                    </div>
+                    <div class="overflow-x-auto max-h-48 border rounded">
+                        <table class="min-w-full text-sm text-left">
+                            <thead class="bg-slate-100 sticky top-0"><tr><th class="py-2 px-3">Daftar SPG Terdaftar</th></tr></thead>
+                            <tbody id="tabelMasterSpg" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALOKASI STOK -->
+            <div class="bg-blue-50 p-5 rounded-xl shadow border border-blue-200">
+                <h3 class="font-bold text-lg mb-3 text-blue-800">3. Berikan Barang ke SPG (Alokasi)</h3>
+                <div class="flex flex-col md:flex-row gap-3 mb-4">
+                    <select id="adminBeriSpg" class="w-full md:w-1/4 p-3 border rounded text-sm bg-white"><option value="">-- Pilih SPG --</option></select>
+                    <select id="adminBeriProduk" class="w-full md:w-2/4 p-3 border rounded text-sm bg-white"><option value="">-- Pilih Barang --</option></select>
+                    <input type="number" id="adminBeriQty" placeholder="Jml Diberikan" class="w-full md:w-1/6 p-3 border rounded text-sm bg-white">
+                    <button id="btnBeriStok" class="w-full md:w-1/6 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-bold p-3">Berikan</button>
+                </div>
+                <div class="overflow-x-auto max-h-40 border rounded border-blue-100 bg-white">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-blue-100 text-blue-800 sticky top-0">
+                            <tr><th class="py-2 px-3">Waktu</th><th class="py-2 px-3">Nama SPG</th><th class="py-2 px-3">Barang Diberikan</th><th class="py-2 px-3 font-bold">Qty</th></tr>
+                        </thead>
+                        <tbody id="tabelRiwayatAlokasi" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- DASHBOARD LIVE (ADMIN) -->
+            <div class="bg-white p-6 rounded-xl shadow border border-slate-200">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">📊 Live Dashboard Monitor</h2>
+                    <button onclick="document.getElementById('modalPin').classList.remove('hidden')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-2 rounded font-bold transition">⚙️ Ubah PIN Admin</button>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-slate-100 p-4 rounded-lg text-center border">
+                        <p class="text-xs font-bold text-slate-600 uppercase">Item Laku</p>
+                        <p id="dashTotalItem" class="text-2xl font-black text-slate-800 mt-1">0</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 p-4 rounded-lg text-center">
+                        <p class="text-xs font-bold text-blue-700 uppercase">Omzet Pusat</p>
+                        <p id="dashOmzetPusat" class="text-xl font-black text-blue-800 mt-1">Rp 0</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-100 p-4 rounded-lg text-center">
+                        <p class="text-xs font-bold text-green-700 uppercase">Omzet SPG</p>
+                        <p id="dashOmzetSpg" class="text-xl font-black text-green-800 mt-1">Rp 0</p>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-lg text-center shadow">
+                        <p class="text-xs font-bold text-slate-300 uppercase">Total Omzet</p>
+                        <p id="dashTotalOmzet" class="text-2xl font-black text-white mt-1">Rp 0</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- POSISI STOK (GUDANG VS SPG) -->
+                    <div>
+                        <h3 class="text-sm font-bold bg-slate-200 p-3 rounded-t text-slate-800">📦 Laporan Sisa Stok Menyeluruh</h3>
+                        <div class="overflow-x-auto border rounded-b">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-slate-50 text-slate-600">
+                                    <tr>
+                                        <th class="py-2 px-3">Lokasi / SPG</th>
+                                        <th class="py-2 px-3">Barang</th>
+                                        <th class="py-2 px-3 text-center">Alokasi/Bawa</th>
+                                        <th class="py-2 px-3 text-center">Terjual</th>
+                                        <th class="py-2 px-3 text-center">SISA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelPosisiStok" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- RIWAYAT TRANSAKSI LIVE ADMIN -->
+                    <div>
+                        <h3 class="text-sm font-bold bg-slate-200 p-3 rounded-t text-slate-800">⏱️ Riwayat Transaksi (Log Admin)</h3>
+                        <div class="overflow-x-auto max-h-[400px] border rounded-b">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-slate-50 text-slate-600 sticky top-0">
+                                    <tr>
+                                        <th class="py-2 px-3">Tgl & Waktu</th>
+                                        <th class="py-2 px-3">Lokasi</th>
+                                        <th class="py-2 px-3">Barang</th>
+                                        <th class="py-2 px-3">Qty</th>
+                                        <th class="py-2 px-3">Nominal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelLogTransaksi" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GANTI PIN -->
+    <div id="modalPin" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-bold mb-4">Ubah PIN Akses Pusat</h3>
+            <input type="password" id="inputPinBaru" class="w-full p-3 border rounded mb-4 focus:ring-2 focus:ring-slate-800" placeholder="Masukkan PIN Baru">
+            <div class="flex justify-end space-x-2">
+                <button onclick="document.getElementById('modalPin').classList.add('hidden')" class="px-4 py-2 bg-slate-200 rounded text-slate-700">Batal</button>
+                <button onclick="simpanPinBaru()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded font-bold">Simpan PIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT UI -->
+    <script>
+        let currentUserSpg = "";
+        let targetLoginPage = ""; 
+        let globalPin = "123456";
+
+        function showPage(pageId) {
+            ['landing-page', 'login-pusat', 'spg-login', 'admin-page', 'spg-page', 'kasir-pusat-page'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+
+            const navBtns = document.getElementById('nav-buttons');
+            if (pageId !== 'landing-page' && pageId !== 'login-pusat' && pageId !== 'spg-login') {
+                navBtns.classList.remove('hidden');
+            } else {
+                navBtns.classList.add('hidden');
+            }
+            document.getElementById('pinPusat').value = '';
+        }
+
+        function bukaLoginPusat(targetPage) {
+            targetLoginPage = targetPage;
+            showPage('login-pusat');
+        }
+
+        function prosesLoginPusat() {
+            if (document.getElementById('pinPusat').value === globalPin) {
+                showPage(targetLoginPage);
+                if(targetLoginPage === 'kasir-pusat-page') renderStokSpgApp();
+            } else {
+                alert("PIN Salah! Akses ditolak.");
+                document.getElementById('pinPusat').value = '';
+            }
+        }
+
+        function loginSpg() {
+            const nama = document.getElementById('pilihNamaSpgLogin').value;
+            if (!nama) return alert("Pilih nama Anda!");
+            currentUserSpg = nama;
+            document.getElementById('namaSpgAktif').innerText = nama;
+            showPage('spg-page');
+            
+            // Pembersihan Form Saat Login
+            document.getElementById('spgPilihProduk').value = "";
+            document.getElementById('spgQty').value = "1";
+            document.getElementById('spgTotalHarga').value = "Rp 0";
+            
+            renderStokSpgApp();
+        }
+
+        function hitungTotal(role) {
+            const prefix = role === 'pusat' ? 'pusat' : 'spg';
+            const select = document.getElementById(`${prefix}PilihProduk`);
+            const qty = document.getElementById(`${prefix}Qty`).value;
+            const inputTotal = document.getElementById(`${prefix}TotalHarga`);
+
+            if(!select.value) return inputTotal.value = "Rp 0";
+            const harga = select.options[select.selectedIndex].getAttribute('data-harga');
+            inputTotal.value = "Rp " + (parseInt(harga) * parseInt(qty || 0)).toLocaleString('id-ID');
+        }
+    </script>
+
+    <!-- SCRIPT FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, setDoc } 
+        from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // ==========================================
+        // GANTI DENGAN CONFIG FIREBASE ANDA
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6Wr6sAxE1Pe74SqAYMin2lafMJ7bV00o",
+            authDomain: "pos-event-mrbreadyog.firebaseapp.com",
+            projectId: "pos-event-mrbreadyog",
+            storageBucket: "pos-event-mrbreadyog.firebasestorage.app",
+            messagingSenderId: "225872010881",
+            appId: "1:225872010881:web:e1805b43ca341141367780",
+            measurementId: "G-3JYLT95B8H"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const colProduk = collection(db, "v5_produk");
+        const colSpg = collection(db, "v5_spg");
+        const colAlokasi = collection(db, "v5_alokasi");
+        const colTransaksi = collection(db, "v5_transaksi");
+        const docSettings = doc(db, "v5_settings", "admin_config");
+
+        let dataProduk = {}; 
+        let dataAlokasi = [];
+        let dataTransaksi = [];
+
+        // --- SISTEM PIN ADMIN ---
+        onSnapshot(docSettings, (docSnap) => {
+            if (docSnap.exists() && docSnap.data().pin) {
+                globalPin = docSnap.data().pin;
+            } else {
+                setDoc(docSettings, { pin: "123456" });
+            }
+        });
+
+        window.simpanPinBaru = async function() {
+            const pinBaru = document.getElementById("inputPinBaru").value;
+            if(pinBaru.length < 4) return alert("PIN minimal 4 karakter!");
+            await setDoc(docSettings, { pin: pinBaru });
+            alert("PIN berhasil diubah!");
+            document.getElementById("inputPinBaru").value = "";
+            document.getElementById("modalPin").classList.add("hidden");
+        }
+
+        // --- 1. TAMBAH PRODUK ---
+        document.getElementById("btnTambahProduk").addEventListener("click", async () => {
+            const nama = document.getElementById("adminNamaProduk").value;
+            const harga = parseInt(document.getElementById("adminHargaProduk").value);
+            const stok = parseInt(document.getElementById("adminStokAwal").value);
+            
+            if(!nama || !harga || !stok) return alert("Lengkapi Form Barang!");
+            
+            await addDoc(colProduk, { nama, harga, stok_awal: stok, waktu: serverTimestamp() });
+            
+            // Pembersihan Form Input Master Produk
+            document.getElementById("adminNamaProduk").value = "";
+            document.getElementById("adminHargaProduk").value = "";
+            document.getElementById("adminStokAwal").value = "";
+        });
+
+        // --- 2. TAMBAH SPG ---
+        document.getElementById("btnTambahSpg").addEventListener("click", async () => {
+            const nama = document.getElementById("adminNamaSpgBaru").value;
+            if(!nama) return alert("Isi Nama SPG!");
+            await addDoc(colSpg, { nama, waktu: serverTimestamp() });
+            
+            // Pembersihan Form Input SPG
+            document.getElementById("adminNamaSpgBaru").value = "";
+        });
+
+        // --- 3. ALOKASI STOK ---
+        document.getElementById("btnBeriStok").addEventListener("click", async () => {
+            const spg = document.getElementById("adminBeriSpg").value;
+            const produkId = document.getElementById("adminBeriProduk").value;
+            const qty = parseInt(document.getElementById("adminBeriQty").value);
+            
+            if(!spg || !produkId || !qty) return alert("Lengkapi data alokasi!");
+            const selectProd = document.getElementById("adminBeriProduk");
+            const namaProduk = selectProd.options[selectProd.selectedIndex].getAttribute('data-nama');
+
+            await addDoc(colAlokasi, { nama_spg: spg, id_produk: produkId, nama_produk: namaProduk, qty: qty, waktu: serverTimestamp() });
+            
+            // Pembersihan Form Alokasi Stok
+            document.getElementById("adminBeriSpg").value = "";
+            document.getElementById("adminBeriProduk").value = "";
+            document.getElementById("adminBeriQty").value = "";
+        });
+
+        // --- 4. TRANSAKSI (PUSAT & SPG) ---
+        document.getElementById("btnPusatJual").addEventListener("click", () => prosesJual('pusat', 'Booth Pusat'));
+        document.getElementById("btnSpgJual").addEventListener("click", () => {
+            const select = document.getElementById("spgPilihProduk");
+            const qtyJual = parseInt(document.getElementById("spgQty").value);
+            const namaProduk = select.options[select.selectedIndex]?.getAttribute('data-nama');
+            
+            let sisaStok = 0;
+            const rekap = getRekapStokSpg();
+            if(rekap[currentUserSpg] && rekap[currentUserSpg][namaProduk]) {
+                sisaStok = rekap[currentUserSpg][namaProduk].sisa;
+            }
+
+            if(qtyJual > sisaStok) return alert(`Gagal! Sisa barang ${namaProduk} hanya ${sisaStok} pcs.`);
+            prosesJual('spg', currentUserSpg);
+        });
+
+        async function prosesJual(prefix, penjualName) {
+            const select = document.getElementById(`${prefix}PilihProduk`);
+            const qty = parseInt(document.getElementById(`${prefix}Qty`).value);
+            
+            if(!select.value || !qty) return alert("Lengkapi data penjualan!");
+
+            const namaProduk = select.options[select.selectedIndex].getAttribute('data-nama');
+            const harga = parseInt(select.options[select.selectedIndex].getAttribute('data-harga'));
+
+            if(prefix === 'pusat') {
+                const rekapPusat = getRekapStokPusat();
+                if(qty > rekapPusat[namaProduk].sisa_gudang) {
+                    return alert(`Stok di gudang pusat tidak cukup! Sisa: ${rekapPusat[namaProduk].sisa_gudang}`);
+                }
+            }
+
+            await addDoc(colTransaksi, {
+                penjual: penjualName, id_produk: select.value, nama_produk: namaProduk, 
+                harga_satuan: harga, qty: qty, total_harga: (harga * qty), waktu: serverTimestamp()
+            });
+
+            alert("Penjualan Berhasil!");
+
+            // Pembersihan Form Kasir secara Total
+            document.getElementById(`${prefix}PilihProduk`).value = "";
+            document.getElementById(`${prefix}Qty`).value = "1";
+            document.getElementById(`${prefix}TotalHarga`).value = "Rp 0";
+        }
+
+        // ================= LISTENERS REAL-TIME & UI RENDER =================
+
+        onSnapshot(colProduk, (snapshot) => {
+            let opt = '<option value="">-- Pilih Barang --</option>';
+            let listTabel = "";
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                dataProduk[doc.id] = d;
+                opt += `<option value="${doc.id}" data-nama="${d.nama}" data-harga="${d.harga}">${d.nama} - Rp ${d.harga.toLocaleString('id-ID')}</option>`;
+                listTabel += `<tr class="hover:bg-slate-50 border-b border-slate-100"><td class="py-2 px-3">${d.nama}</td><td class="py-2 px-3 text-blue-600 font-bold">Rp ${d.harga.toLocaleString('id-ID')}</td><td class="py-2 px-3 text-center font-bold">${d.stok_awal}</td></tr>`;
+            });
+            document.getElementById("pusatPilihProduk").innerHTML = opt;
+            document.getElementById("adminBeriProduk").innerHTML = opt;
+            document.getElementById("tabelMasterProduk").innerHTML = listTabel;
+            renderKalkulasi(); 
+        });
+
+        onSnapshot(colSpg, (snapshot) => {
+            let opt = '<option value="">-- Pilih Nama --</option>';
+            let listTabel = "";
+            snapshot.forEach(doc => {
+                const nama = doc.data().nama;
+                opt += `<option value="${nama}">${nama}</option>`;
+                listTabel += `<tr class="hover:bg-slate-50 border-b border-slate-100"><td class="py-2 px-3">${nama}</td></tr>`;
+            });
+            document.getElementById("pilihNamaSpgLogin").innerHTML = opt;
+            document.getElementById("adminBeriSpg").innerHTML = opt;
+            document.getElementById("tabelMasterSpg").innerHTML = listTabel;
+        });
+
+        onSnapshot(query(colAlokasi, orderBy("waktu", "desc")), (snapshot) => {
+            dataAlokasi = [];
+            let logHtml = "";
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                dataAlokasi.push(d);
+                let w = "Menunggu...";
+                if(d.waktu) w = formatWaktu(d.waktu.toDate());
+                logHtml += `<tr class="hover:bg-blue-50 border-b border-slate-100"><td class="py-2 px-3 text-xs text-slate-500">${w}</td><td class="py-2 px-3 font-semibold text-slate-700">${d.nama_spg}</td><td class="py-2 px-3">${d.nama_produk}</td><td class="py-2 px-3 font-black text-blue-700">+${d.qty}</td></tr>`;
+            });
+            document.getElementById("tabelRiwayatAlokasi").innerHTML = logHtml;
+            renderKalkulasi();
+        });
+
+        // LISTENER TRANSAKSI (MENGISI DASHBOARD ADMIN & HOME PAGE)
+        onSnapshot(query(colTransaksi, orderBy("waktu", "desc")), (snapshot) => {
+            dataTransaksi = [];
+            let logHtmlAdmin = "", logHtmlHome = "", itemLaku = 0, omzetPusat = 0, omzetSpg = 0;
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                dataTransaksi.push(d);
+                itemLaku += d.qty;
+                
+                if(d.penjual === "Booth Pusat") omzetPusat += d.total_harga;
+                else omzetSpg += d.total_harga;
+
+                let w = "Baru Saja";
+                if(d.waktu) w = formatWaktu(d.waktu.toDate());
+
+                const rowColor = d.penjual === "Booth Pusat" ? "bg-blue-50" : "bg-white";
+                const rowHover = "hover:bg-slate-100";
+                
+                // Format Baris HTML untuk 2 tabel sekaligus
+                const rowHtml = `
+                    <tr class="${rowColor} ${rowHover} border-b border-slate-100 transition">
+                        <td class="py-3 px-4 text-xs text-slate-500">${w}</td>
+                        <td class="py-3 px-4 font-bold text-slate-700">${d.penjual}</td>
+                        <td class="py-3 px-4 text-slate-700">${d.nama_produk}</td>
+                        <td class="py-3 px-4 text-center font-bold">${d.qty}</td>
+                        <td class="py-3 px-4 font-bold text-green-700">Rp ${d.total_harga.toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+
+                logHtmlAdmin += rowHtml;
+                logHtmlHome += rowHtml;
+            });
+
+            // Update Angka
+            document.getElementById("dashTotalItem").innerText = itemLaku;
+            document.getElementById("dashOmzetPusat").innerText = "Rp " + omzetPusat.toLocaleString('id-ID');
+            document.getElementById("dashOmzetSpg").innerText = "Rp " + omzetSpg.toLocaleString('id-ID');
+            document.getElementById("dashTotalOmzet").innerText = "Rp " + (omzetPusat + omzetSpg).toLocaleString('id-ID');
+            
+            // Update Tabel di Admin & Home
+            document.getElementById("tabelLogTransaksi").innerHTML = logHtmlAdmin;
+            document.getElementById("tabelLogTransaksiHome").innerHTML = logHtmlHome || '<tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada transaksi</td></tr>';
+
+            renderKalkulasi();
+        });
+
+        function formatWaktu(dateObj) {
+            const date = dateObj.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
+            const time = dateObj.getHours().toString().padStart(2,'0') + ":" + dateObj.getMinutes().toString().padStart(2,'0');
+            return `${date} ${time}`;
+        }
+
+        function getRekapStokSpg() {
+            let rekap = {};
+            dataAlokasi.forEach(a => {
+                if(!rekap[a.nama_spg]) rekap[a.nama_spg] = {};
+                if(!rekap[a.nama_spg][a.nama_produk]) rekap[a.nama_spg][a.nama_produk] = { bawa: 0, jual: 0, sisa: 0 };
+                rekap[a.nama_spg][a.nama_produk].bawa += a.qty;
+            });
+            dataTransaksi.forEach(t => {
+                if(t.penjual !== "Booth Pusat" && rekap[t.penjual] && rekap[t.penjual][t.nama_produk]) {
+                    rekap[t.penjual][t.nama_produk].jual += t.qty;
+                }
+            });
+            for(let spg in rekap) {
+                for(let prod in rekap[spg]) {
+                    rekap[spg][prod].sisa = rekap[spg][prod].bawa - rekap[spg][prod].jual;
+                }
+            }
+            return rekap;
+        }
+
+        function getRekapStokPusat() {
+            let rekap = {};
+            for(let id in dataProduk) {
+                rekap[dataProduk[id].nama] = { awal: dataProduk[id].stok_awal, alokasi_out: 0, jual_pusat: 0, sisa_gudang: 0 };
+            }
+            dataAlokasi.forEach(a => { if(rekap[a.nama_produk]) rekap[a.nama_produk].alokasi_out += a.qty; });
+            dataTransaksi.forEach(t => {
+                if(t.penjual === "Booth Pusat" && rekap[t.nama_produk]) rekap[t.nama_produk].jual_pusat += t.qty;
+            });
+            for(let p in rekap) {
+                rekap[p].sisa_gudang = rekap[p].awal - rekap[p].alokasi_out - rekap[p].jual_pusat;
+            }
+            return rekap;
+        }
+
+        window.renderKalkulasi = function() {
+            const rekapSpg = getRekapStokSpg();
+            const rekapPusat = getRekapStokPusat();
+            let tableHtml = "";
+
+            for(let prod in rekapPusat) {
+                const p = rekapPusat[prod];
+                let warna = p.sisa_gudang <= 0 ? "text-red-600" : "text-blue-700";
+                tableHtml += `
+                    <tr class="bg-blue-50 border-b border-blue-100">
+                        <td class="py-2 px-3 font-bold text-blue-900">🏢 Gudang Pusat</td>
+                        <td class="py-2 px-3 font-semibold">${prod}</td>
+                        <td class="py-2 px-3 text-center text-xs text-blue-600">(Stok Awal) ${p.awal}</td>
+                        <td class="py-2 px-3 text-center text-xs text-blue-600">(Terjual) ${p.jual_pusat}</td>
+                        <td class="py-2 px-3 text-center font-black ${warna} text-lg">${p.sisa_gudang}</td>
+                    </tr>
+                `;
+            }
+
+            for(let spg in rekapSpg) {
+                for(let prod in rekapSpg[spg]) {
+                    const data = rekapSpg[spg][prod];
+                    let warnaSisa = data.sisa <= 0 ? "text-red-500 font-bold" : "text-slate-800 font-bold";
+                    tableHtml += `
+                        <tr class="bg-white hover:bg-slate-50 border-b border-slate-100 transition">
+                            <td class="py-2 px-3 text-slate-700 pl-8">↳ SPG: ${spg}</td>
+                            <td class="py-2 px-3">${prod}</td>
+                            <td class="py-2 px-3 text-center text-slate-500">${data.bawa}</td>
+                            <td class="py-2 px-3 text-center text-green-600">${data.jual}</td>
+                            <td class="py-2 px-3 text-center ${warnaSisa}">${data.sisa}</td>
+                        </tr>
+                    `;
+                }
+            }
+            document.getElementById("tabelPosisiStok").innerHTML = tableHtml;
+            renderStokSpgApp();
+        }
+
+        window.renderStokSpgApp = function() {
+            if(currentUserSpg) {
+                const rekap = getRekapStokSpg();
+                const stokSaya = rekap[currentUserSpg] || {};
+                let listHtml = "", optHtml = '<option value="">-- Pilih Barang --</option>';
+                
+                for(let prod in stokSaya) {
+                    const data = stokSaya[prod];
+                    let bg = data.sisa > 0 ? "bg-green-500" : "bg-red-500";
+                    listHtml += `<li class="flex justify-between items-center border-b border-slate-700 pb-2"><span>${prod}</span><span class="${bg} px-2 py-1 rounded-md text-xs font-bold shadow">Sisa: ${data.sisa}</span></li>`;
+                    
+                    let idProd = "", harga = 0;
+                    for(let key in dataProduk) if(dataProduk[key].nama === prod) { idProd = key; harga = dataProduk[key].harga; break; }
+                    
+                    if(data.sisa > 0) optHtml += `<option value="${idProd}" data-nama="${prod}" data-harga="${harga}">${prod} (Sisa: ${data.sisa})</option>`;
+                }
+                document.getElementById("listSisaStokSpg").innerHTML = listHtml || "<li class='text-slate-400'>Belum ada alokasi barang dari pusat.</li>";
+                document.getElementById("spgPilihProduk").innerHTML = optHtml;
+            }
+
+            if(targetLoginPage === 'kasir-pusat-page' || document.getElementById('kasir-pusat-page').classList.contains('hidden') === false) {
+                const rekapP = getRekapStokPusat();
+                let listHtmlP = "", optHtmlP = '<option value="">-- Pilih Barang --</option>';
+                for(let prod in rekapP) {
+                    const data = rekapP[prod];
+                    let bg = data.sisa_gudang > 0 ? "text-blue-700" : "text-red-500";
+                    listHtmlP += `<li class="flex justify-between border-b border-slate-200 pb-2"><span>${prod}</span><span class="${bg} font-bold text-lg">${data.sisa_gudang}</span></li>`;
+                    
+                    let idProd = "", harga = 0;
+                    for(let key in dataProduk) if(dataProduk[key].nama === prod) { idProd = key; harga = dataProduk[key].harga; break; }
+                    if(data.sisa_gudang > 0) optHtmlP += `<option value="${idProd}" data-nama="${prod}" data-harga="${harga}">${prod} - Rp ${harga.toLocaleString('id-ID')}</option>`;
+                }
+                document.getElementById("listSisaStokPusat").innerHTML = listHtmlP || "<li>Data gudang kosong.</li>";
+                document.getElementById("pusatPilihProduk").innerHTML = optHtmlP;
+            }
+        }
+    </script>
+</body>
+</html>
